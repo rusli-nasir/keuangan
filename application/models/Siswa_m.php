@@ -150,16 +150,6 @@ class Siswa_m extends CI_Model {
 	}
 
 
-	public function getMsisdn($siswa_id)
-	{
-		$this->db->select('msisdn');
-		$this->db->from('siswa');
-		$this->db->where('id', $siswa_id);
-		$query = $this->db->get();
-		return $query;
-	}
-
-
 	//waktu saat ini
     public function time()
     {

@@ -1049,7 +1049,7 @@ class Keuangan_m extends CI_Model {
 								  payment
 								  JOIN kategori_keuangan
 								    ON kategori_keuangan.id = payment.kategori_keuangan_id
-								WHERE payment.date_created between '".$semester1."-07-01' and '".$semester2."-06-30'
+								WHERE payment.date_created between '".$semester1."-07-01' and '".$semester2."-06-30' and payment.flag = 'show'
 								  AND sekolah_id = '$sekolah_id'");
 		return $sql;
 	}
