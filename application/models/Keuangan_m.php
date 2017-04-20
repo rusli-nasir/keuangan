@@ -606,10 +606,11 @@ class Keuangan_m extends CI_Model {
 		$kategori_keuangan_id = $this->input->post('kategori_keuangan_id');
 		$amount               = $this->input->post('amount');
 		$annualy              = $this->input->post('annualy');
+		$tahun                = $this->input->post('years');
 		$cms_user_id          = $this->session->user_id;
 		
 		$nama_kategori = $this->get_nama_kategori_keuangan2($kategori_keuangan_id)->row('nama_kategori');
-
+		
 		$data = array(
 				'siswa_id'             => $siswa_id,
 				'kategori_keuangan_id' => $kategori_keuangan_id,
@@ -636,11 +637,20 @@ class Keuangan_m extends CI_Model {
 			// } else {
 			// 	$current_semester = $semester1;
 			// }
-			$current_semester      = $this->input->post('years');
 			$data['bulan_id']      = $annualy;
-			$data['tahun']         = $current_semester;
+			$data['tahun']         = $tahun;
 			$condition['bulan_id'] = $annualy;
-			$condition['tahun']    = $current_semester;
+			$condition['tahun']    = $tahun;
+
+		} else if($nama_kategori == 'Perpisahan'){
+			if (date('m') > 6) {
+				$tahun_ajaran_id = '1';
+			} else {
+				$tahun_ajaran_id = '2';
+			}
+
+			$data['tahun_ajaran_id'] = $tahun_ajaran_id;
+			$data['tahun']           = $tahun;
 		}
 
 		$exist = $this->crud->paid($condition);
@@ -841,6 +851,7 @@ class Keuangan_m extends CI_Model {
 
 	public function check_payment()
 	{
+		date_default_timezone_set('Asia/Jakarta');
 		$this->load->model('crud_m', 'crud');
 		$current_semester     = $this->input->post('years');
 		$kategori_keuangan_id = $this->input->post('kategori_keuangan_id');
@@ -874,7 +885,6 @@ class Keuangan_m extends CI_Model {
 			
 			case 'Prakerin':
 			case 'Komite':
-			case 'Perpisahan':
 			case 'Pendaftaran Ulang':
 			case 'PSB':
 			case 'Ujian Pra USEK':
@@ -886,6 +896,34 @@ class Keuangan_m extends CI_Model {
 					'siswa_id'             => $siswa_id,
 					'flag'                 => 'show');
 				$paid = $this->crud->paid($condition)->row()->paid;
+				break;
+
+			case 'Perpisahan':
+				if (date('m') > 6) {
+					$tahun_ajaran_id  = '1';
+					$semester1        = $current_semester;
+					$tahun_ajaran_id2 = $tahun_ajaran_id + 1;
+					$semester2        = $current_semester + 1;
+				} else {
+					$tahun_ajaran_id  = '2';
+					$semester1        = $current_semester;
+					$tahun_ajaran_id2 = $tahun_ajaran_id - 1;
+					$semester2        = $current_semester - 1;
+				}
+				
+				$condition = array(
+					'kategori_keuangan_id' => $kategori_keuangan_id,
+					'siswa_id'             => $siswa_id,
+					'flag'                 => 'show');
+				$conditionOr = array(
+					'one' => array(
+						'tahun'           => $semester1,
+						'tahun_ajaran_id' => $tahun_ajaran_id),
+					'two' => array(
+						'tahun'           => $semester2,
+						'tahun_ajaran_id' => $tahun_ajaran_id2)
+					);
+				$paid = $this->crud->paidPerpisahan($condition, $conditionOr)->row()->paid;
 				break;
 
 			case 'Semester Ganjil':
@@ -915,9 +953,6 @@ class Keuangan_m extends CI_Model {
 					'afterYear'   => $current_semester+1,
 					'beforeYear'  => $current_semester-1);
 				$paid = $this->crud->paid($condition, $conditionOr)->row()->paid;
-				// var_dump($paid);
-				// echo $this->db->last_query();
-				// exit();
 				break;
 
 			default:

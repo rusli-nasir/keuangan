@@ -133,6 +133,27 @@ class Crud_m extends CI_Model {
 	}
 
 
+	public function paidPerpisahan($condition, $conditionOr)
+	{
+		$x=1;
+		$this->db->select('SUM(amount) as paid');
+		$this->db->from('payment');
+		$this->db->where($condition);
+		$this->db->group_start();
+			foreach ($conditionOr as $key) {
+				if ($x > 1) {
+					$this->db->or_where($key);
+				} else {
+					$this->db->where($key);
+				}
+				$x++;
+			} 
+		$this->db->group_end();
+		$sql = $this->db->get();
+		return $sql;
+	}
+
+
 	public function update($data, $table, $condition)
 	{
 		$this->db->update($table, $data, $condition);

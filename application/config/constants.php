@@ -8,7 +8,7 @@ list folder yang digunakan
 $ip = 'localhost/nasional';
 define('theme_css', 'http://'.$ip.'/assets/theme/css/');
 define('theme_js', 'http://'.$ip.'/assets/theme/js/');
-define('baseAdminLte', 'http://'.$ip.'/adminlte/');
+define('baseAdminLte', 'http://'.$ip.'/adminlte2/');
 define('data', 'http://'.$ip.'/data/');
 
 /*
