@@ -156,7 +156,6 @@
           </a>
           <ul class="treeview-menu">
             <li><a href="<?php echo base_url('piutang/getListPiutang/'.$this->session->sekolah_id) ?>"><i class="fa fa-users"></i> 2016 - 2017</a></li>
-            <!-- <li><a href="#"><i class="fa fa-sticky-note"></i> Profil</a></li> -->
           </ul>
         </li>
         <li class="treeview">

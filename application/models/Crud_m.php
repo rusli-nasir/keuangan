@@ -144,6 +144,7 @@ class Crud_m extends CI_Model {
 				if ($x > 1) {
 					$where = "tahun='".$key['tahun']."' AND tahun_ajaran_id='".$key['tahun_ajaran_id']."'";
 					$this->db->or_where($where);
+					$this->db->or_where($key);
 				} else {
 					$this->db->where($key);
 				}

@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
 	"description": "The CodeIgniter framework",
 	"name": "codeigniter/framework",
 	"type": "project",
@@ -19,4 +20,10 @@
 	"require-dev": {
 		"mikey179/vfsStream": "1.1.*"
 	}
+=======
+	"name" : "html2pdf/codeigniter",
+  	"require": {
+    	"dompdf/dompdf" : "0.6.*"
+  	}
+>>>>>>> 387aa3376640a03a60d4f9785f89855ad22c5329
 }
