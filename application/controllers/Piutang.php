@@ -307,9 +307,9 @@ class Piutang extends CI_Controller {
 	}
 
 
-	public function getDetailPiutangSiswa($idpiutangSiswa)
-	{
-		$condition = "piutangSiswaId = '".$idpiutangSiswa."' and biaya > totalPayment";
+	public function getDetailPiutangSiswa($idpiutangSiswa){
+	
+		$condition = "piutangSiswaId = '".$idpiutangSiswa."' and (biaya > totalPayment or totalPayment is null)";
 		$data      = $this->crud->get('detailPiutangSiswa', $condition)->result_array();
 		if($data){
             $tmp .=    "<option value=''>Pilih Pembayaran</option>";

@@ -522,7 +522,12 @@ class Keuangan_m extends CI_Model {
 		$tahun_masuk= $data['tahun_masuk'];
 		$gender		= $data['gender'];
 		$semester 	= $data['semester_id'];
-		if ($semester < 2) {
+
+		if ($semester % 2 == 0) {
+			$before_semester = $semester - 1;
+		}
+			
+		/*if ($semester < 2) {
 			$before_semester = '1';
 		}else{
 			if ($semester % 2 == 0) {
@@ -530,7 +535,7 @@ class Keuangan_m extends CI_Model {
 			}else{
 				$before_semester = $semester - 1;
 			}
-		}
+		}*/
 
 		if ($gender=='L') {
 			$gender = 'P';

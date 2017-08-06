@@ -113,10 +113,15 @@ class Piutang_m extends CI_Model {
 
 	public function getSiswaPiutang()
 	{
+		$sekolahId = $_SESSION['sekolah_id'];
 		$query = $this->db->select('namaSiswa,idpiutangSiswa')
 		->from('piutangSiswa')
 		->join('detailPiutangSiswa', 'detailPiutangSiswa.piutangSiswaId=piutangSiswa.idpiutangSiswa')
+		->join('piutangRombel','piutangRombel.rombelId = piutangSiswa.rombelId')
+		->join('piutangSekolah','piutangSekolah.sekolahId = piutangRombel.sekolahId')
 		->where('detailPiutangSiswa.biaya > detailPiutangSiswa.totalPayment')
+		->where('piutangSekolah.sekolahId', $sekolahId)
+		->or_where('detailPiutangSiswa.totalPayment', null)
 		->group_by('namaSiswa')
 		->order_by('namaSiswa','asc')
 		->get();
