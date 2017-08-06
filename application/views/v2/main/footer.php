@@ -110,6 +110,11 @@ $(document).ready(function() {
           $('#annualy').html(obj);
       });
   });
+  $('#siswaPiutang').change(function(){
+    $.post("<?php echo base_url(''); ?>piutang/getDetailPiutangSiswa/"+$('#siswaPiutang').val(),{},function(obj){
+          $('#iddetailPiutangSiswa').html(obj);
+      });
+  });
    // $('.datepicker').datepicker({
    //      format: 'mm/dd/yyyy',
    //      startDate: '-3d'
@@ -120,5 +125,6 @@ $(document).ready(function() {
   }
 
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
 </body>
 </html>

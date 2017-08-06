@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
 <!-- Main content -->
 <section class="content">
 
@@ -5,8 +6,9 @@
   <div class="row">
     <!-- Left col -->
     <div class="col-md-6">
-      <!-- MAP & BOX PANE -->
+      <!-- MAP & BOX PANE --> 
 
+      <button type="button" class="btn btn-danger hidden-md" data-toggle="modal" data-target="#add" style="margin-bottom: 10px"><b>Pembayaran</b></button>
       <?php
         $x = 0; 
         foreach ($data as $key) { ?>
@@ -138,3 +140,68 @@
     document.getElementById(target).style.display = '';
   }
 </script>
+
+<!-- MODAL ADD -->
+<div id="add" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" >
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="mySmallModalLabel">Form Pembayaran</h4>
+        </div>
+        <div class="modal-body form-group">
+          <form method="post" action="<?php echo base_url().'piutang/payment_in' ?>">
+            <div class="row">
+              <div class="col-md-4 col-left">
+                <div class="form-group">
+                  <label>Nama Siswa</label>
+                  <select class="selectpicker form-control" data-live-search="true" name="idpiutangSiswa" id="siswaPiutang" required data-live-search="true">
+                    <option value="">Pilih</option>
+                    <?php foreach ($siswa as $row) {
+                      echo "<option data-tokens='".$row['namaSiswa']."' value='".$row['idpiutangSiswa']."'>".$row['namaSiswa']."</option>";
+                    } ?>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label>Pembayaran :</label>
+                  <select name="iddetailPiutangSiswa" id="iddetailPiutangSiswa" class="form-control" required>
+                    <option value="">Pilih Pembayaran</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                    <label>Jumlah :</label>
+                    <input type="number" class="form-control" name="amount" required min="1">
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-default">Simpan</button>
+            </div> <!-- /.form-group -->
+          </form>
+        </div>
+    </div>
+  </div>
+</div>
+<!-- END MODAL ADD -->
+
+<script src="<?php echo baseAdminLte; ?>sweetalert/sweetalert-dev.js"></script>
+<link rel="stylesheet" type="text/css" href="<?php echo baseAdminLte; ?>sweetalert/sweetalert.css">
+<?php 
+$sess = $this->session->flashdata('status');
+switch ($sess) {
+   case 'true':
+     ?><script> swal("<?php echo $this->session->flashdata('info') ?>", "", "success")</script><?php
+     break;
+
+   case 'false':
+     ?><script> swal("<?php echo $this->session->flashdata('info') ?>", "", "error")</script><?php
+     break;
+
+   default:
+     # code...
+     break;
+ } ?>

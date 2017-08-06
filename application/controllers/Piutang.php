@@ -291,16 +291,56 @@ class Piutang extends CI_Controller {
 			array_push($piutang, $tmp);
 		}
 
+		$siswaPiutang = $this->piutang_m->getSiswaPiutang()->result_array();
+
 		$kelas = $this->kelas($sekolahId);
 		$data  = array(
 			'page'    => 'v2/page/listPiutangSekolah',
 			'menu'    => 'Daftar Sisa Pembayaran Tahun Ajaran 2016-2017 '.$namaSekolah,
 			'submenu' => $kelas,
 			'title'   => 'List '.$now,
-			'data'    => $piutang
+			'data'    => $piutang,
+			'siswa'   => $siswaPiutang
 			);
 
 		$this->parser->parse('v2/lte', $data);
+	}
+
+
+	public function getDetailPiutangSiswa($idpiutangSiswa)
+	{
+		$condition = "piutangSiswaId = '".$idpiutangSiswa."' and biaya > totalPayment";
+		$data      = $this->crud->get('detailPiutangSiswa', $condition)->result_array();
+		if($data){
+            $tmp .=    "<option value=''>Pilih Pembayaran</option>";
+            foreach($data as $row) {
+                $tmp .= "<option value='".$row['iddetailPiutangSiswa']."'>".$row['namaKategori']."(Rp.".number_format($row['biaya']-$row['totalPayment'], 0 , '' , '.' ).")</option>";
+            }
+        } else {
+            $tmp .=    "<option value=''>Pilih Pembayaran</option>";
+        }
+        die($tmp);
+	}
+
+
+	public function payment_in()
+	{
+		$sekolahId            = $_SESSION['sekolah_id'];
+		$iddetailPiutangSiswa = $this->input->post('iddetailPiutangSiswa');
+		$amount               = $this->input->post('amount');
+		$piutang              = $this->crud->get('detailPiutangSiswa', array('iddetailPiutangSiswa' => $iddetailPiutangSiswa))->row();
+	
+		if ($amount > $piutang->biaya - $piutang->totalPayment) {
+			$data = array('status' => 'false', 'info' => 'Pembayaran berlebih, mohon ulangi dan periksa kembali');
+		
+		} else {
+			$data = array('iddetailPiutangSiswa' => $iddetailPiutangSiswa, 'amount' => $amount);
+			$this->piutang_m->updatePiutang($data);
+			$data = array('status' => 'true', 'info' => 'Pembayaran Diterima');
+		} 
+
+		$this->session->set_flashdata($data);
+		redirect(base_url('piutang/getListPiutang/'.$sekolahId));
 	}
 
 }

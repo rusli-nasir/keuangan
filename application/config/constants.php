@@ -6,8 +6,8 @@ list folder yang digunakan
 */
 
 
-$http = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://';
-$ip   = $http.$_SERVER['SERVER_NAME'].'/nasional';
+// $http = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://';
+$ip   = $_SERVER['SERVER_NAME'].'/nasional';
 define('theme_css', 'http://'.$ip.'/assets/theme/css/');
 define('theme_js', 'http://'.$ip.'/assets/theme/js/');
 define('baseAdminLte', 'http://'.$ip.'/adminlte2/');

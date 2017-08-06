@@ -27,15 +27,15 @@
           <?php if ($this->session->privilege_id == '1') { ?>
           <p>
             <form style="position:absolute; display:flex;" action="<?php echo base_url('v2/main/harian_in/'.$data['sekolah_id']) ?>" method="get">
-            <button type="button" class="btn btn-success hidden-xs" style="width:auto" data-toggle="modal" data-target="#add2">Penerimaan Lainnya</button>
-            <button type="button" class="btn btn-primary hidden-xs" style="margin-left: 12px;width:auto" data-toggle="modal" data-target="#add">Pembayaran</button>
-            <a target="_blank" style="margin-left: 12px;width:auto" class="btn btn-warning" href="<?php echo base_url('v2/main/pdf?type=1&id='.$sekolah_id.'&times='.$now.''); ?>">Print</a>
-            <div class="input-group" style="margin-bottom: 0; margin-left: 12px; margin-right: 0; margin-top: 0; position: absolute; width: 200px;">
+            <div class="input-group" >
                 <input class="form-control" type="text" id="datepicker" required placeholder="Tanggal" name="date">
                 <div class="input-group-btn">
                   <button type="submit" class="btn btn-danger">Ok</button>
                 </div>
             </div>
+            <a target="_blank" style="margin: 0px 12px 0px 12px; width:auto" class="btn btn-warning" href="<?php echo base_url('v2/main/pdf?type=1&id='.$sekolah_id.'&times='.$now.''); ?>">Print</a>
+            <button type="button" class="btn btn-success hidden-xs" style="width:auto" data-toggle="modal" data-target="#add2">Penerimaan Lainnya</button>
+            <button type="button" class="btn btn-primary hidden-xs" style="margin-left: 12px;width:auto" data-toggle="modal" data-target="#add">Pembayaran</button>
             </form>
           </p>
           <?php } else { ?>

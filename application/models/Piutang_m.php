@@ -109,6 +109,145 @@ class Piutang_m extends CI_Model {
 		$query = $this->db->select('namaKategori,biaya,totalPayment')->from('detailPiutangSiswa')->where(array('piutangSiswaId' => $piutangSiswaId))->get()->result_array();
 		return $query;
 	}
+
+
+	public function getSiswaPiutang()
+	{
+		$query = $this->db->select('namaSiswa,idpiutangSiswa')
+		->from('piutangSiswa')
+		->join('detailPiutangSiswa', 'detailPiutangSiswa.piutangSiswaId=piutangSiswa.idpiutangSiswa')
+		->where('detailPiutangSiswa.biaya > detailPiutangSiswa.totalPayment')
+		->group_by('namaSiswa')
+		->order_by('namaSiswa','asc')
+		->get();
+		
+		return $query;
+	}
+
+
+	public function updatePiutang($data)
+	{
+		$cmsUserId            = $_SESSION['user_id'];
+		$currentDate          = date('Y-m-d H:i:s');
+		$currentMonth         = date('m');
+		$iddetailPiutangSiswa = $data['iddetailPiutangSiswa'];
+		$amount               = $data['amount'];
+
+		$piutangId = $this->db->select('
+			detailPiutangSiswa.kategoriKeuanganId,
+			detailPiutangSiswa.biaya, 
+			detailPiutangSiswa.totalPayment, 
+			piutangSiswa.piutangSiswa, 
+			piutangRombel.piutangRombel, 
+			piutangRombel.percentage,
+			piutangRombel.studentFee as studentFeeRombel, 
+			piutangSekolah.piutangSekolah,
+			piutangSekolah.studentFee as studentFeeSekolah,
+			idpiutangSiswa,
+			piutangRombel.rombelId,
+			piutangSekolah.sekolahId,
+			piutangSiswa.namaSiswa')
+		->from('detailPiutangSiswa')
+		->join('piutangSiswa','piutangSiswa.idpiutangSiswa = detailPiutangSiswa.piutangSiswaId')
+		->join('piutangRombel','piutangRombel.rombelId = piutangSiswa.rombelId')
+		->join('piutangSekolah','piutangSekolah.sekolahId = piutangRombel.sekolahId')
+		->where('iddetailPiutangSiswa',$iddetailPiutangSiswa)
+		->get()
+		->row();
+
+		// echo $this->db->last_query();
+		// exit();
+
+		$totalPayment      = $amount + $piutangId->totalPayment;
+		$piutangSiswa      = $piutangId->piutangSiswa - $amount;
+		$piutangRombel     = $piutangId->piutangRombel - $amount;
+		$piutangSekolah    = $piutangId->piutangSekolah - $amount;
+		$percentageRombel  = round(100-$piutangRombel / ($piutangId->studentFeeRombel/100),2);
+		$percentageSekolah = round(100-$piutangSekolah / ($piutangId->studentFeeSekolah/100),2);
+
+		$idpiutangSiswa     = $piutangId->idpiutangSiswa;
+		$rombelId           = $piutangId->rombelId;
+		$sekolahId          = $piutangId->sekolahId;
+		$kategoriKeuanganId = $piutangId->kategoriKeuanganId;
+		$siswaId            = $this->db->select('id')->from('siswa')->where('nama_siswa', $piutangId->namaSiswa)->get()->row()->id;
+
+		$data = array('totalPayment' => $totalPayment);
+		$this->db->update('detailPiutangSiswa', $data, array('iddetailPiutangSiswa' => $iddetailPiutangSiswa));
+
+		$data = array('piutangSiswa' => $piutangSiswa);
+		$this->db->update('piutangSiswa', $data, array('idpiutangSiswa' => $idpiutangSiswa));
+
+		$data = array('piutangRombel' => $piutangRombel, 'percentage' => $percentageRombel);
+		$this->db->update('piutangRombel', $data, array('rombelId' => $rombelId));
+
+		$data = array('piutangSekolah' => $piutangSekolah, 'percentage' => $percentageSekolah);
+		$this->db->update('piutangSekolah', $data, array('sekolahId' => $sekolahId));		
+
+		switch ($currentMonth) {
+			case '07':
+				$bulanId = '1';
+				break;
+
+			case '08':
+				$bulanId = '2';
+				break;
+
+			case '09':
+				$bulanId = '3';
+				break;
+
+			case '10':
+				$bulanId = '4';
+				break;
+
+			case '11':
+				$bulanId = '5';
+				break;
+
+			case '12':
+				$bulanId = '6';
+				break;
+
+			case '01':
+				$bulanId = '7';
+				break;
+
+			case '02':
+				$bulanId = '8';
+				break;
+
+			case '03':
+				$bulanId = '9';
+				break;
+
+			case '04':
+				$bulanId = '10';
+				break;
+
+			case '05':
+				$bulanId = '11';
+				break;
+
+			case '06':
+				$bulanId = '12';
+				break;
+			
+			default:
+				# code...
+				break;
+		}
+
+		$data = array(
+			'siswa_id'             => $siswaId,
+			'kategori_keuangan_id' => $kategoriKeuanganId,
+			'amount'               => $amount,
+			'date_created'          => $currentDate,
+			'date_updated'          => $currentDate,
+			'cms_user_id'          => $cmsUserId,
+			'bulan_id'             => $bulanId,
+			'tahun'                => date('Y'));
+		$this->db->insert('payment', $data);
+	}
 }
 
 /* End of file welcome.php */
