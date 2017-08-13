@@ -632,30 +632,41 @@ class Keuangan_m extends CI_Model {
 			'flag'                 => 'show');
 
 		$nama_kategori_spp_span = substr($nama_kategori, 0, 12);
-		if ($nama_kategori == 'SPP' or $nama_kategori_spp_span == 'SPP Semester') {
-			$tahun_ajar 		= $this->keuangan_m->tahun_ajar()->row('tahun_ajar');
-			$tahun_pelajaran 	= explode('-', $tahun_ajar);
-			$semester1 			= $tahun_pelajaran['0'];
-			$semester2 			= $tahun_pelajaran['1'];
-			// if ($annualy >= 7 ) {
-			// 	$current_semester = $semester2;
-			// } else {
-			// 	$current_semester = $semester1;
-			// }
-			$data['bulan_id']      = $annualy;
-			$data['tahun']         = $tahun;
-			$condition['bulan_id'] = $annualy;
-			$condition['tahun']    = $tahun;
 
-		} else if($nama_kategori == 'Perpisahan'){
-			if (date('m') > 6) {
-				$tahun_ajaran_id = '1';
-			} else {
-				$tahun_ajaran_id = '2';
-			}
+		switch ($nama_kategori) {
+			case 'SPP':
+			case 'SPP Semester':
+				$tahun_ajar            = $this->keuangan_m->tahun_ajar()->row('tahun_ajar');
+				$tahun_pelajaran       = explode('-', $tahun_ajar);
+				$semester1             = $tahun_pelajaran['0'];
+				$semester2             = $tahun_pelajaran['1'];
+				$data['bulan_id']      = $annualy;
+				$data['tahun']         = $tahun;
+				$condition['bulan_id'] = $annualy;
+				$condition['tahun']    = $tahun;
+				# code...
+				break;
 
-			$data['tahun_ajaran_id'] = $tahun_ajaran_id;
-			$data['tahun']           = $tahun;
+			case 'Perpisahan':
+				if (date('m') > 6) {
+					$tahun_ajaran_id = '1';
+				} else {
+					$tahun_ajaran_id = '2';
+				}
+				$data['tahun_ajaran_id'] = $tahun_ajaran_id;
+				$data['tahun']           = $tahun;
+				break;
+
+			case 'Semester Ganjil':
+			case 'Semester Genap':
+			case 'Mid Ganjil':
+			case 'Mid Genap':
+				$data['tahun'] = $tahun;
+				break;
+			
+			default:
+				# code...
+				break;
 		}
 
 		$exist = $this->crud->paid($condition);

@@ -11,12 +11,8 @@ class Piutang_m extends CI_Model {
 		$semester 	= $data['semester_id'];
 		if ($semester < 2) {
 			$before_semester = '1';
-		}else{
-			if ($semester % 2 == 0) {
-				$before_semester = $semester - 1;
-			}else{
-				$before_semester = $semester - 1;
-			}
+		}else if ($semester % 2 == 0) {
+			$before_semester = $semester - 1;
 		}
 
 		if ($gender=='L') {
@@ -25,37 +21,53 @@ class Piutang_m extends CI_Model {
 			$gender = 'L';
 		}
 
-		$sql = $this->db->query("SELECT
-								  biaya,
-								  kategori_keuangan.id,
-								  nama_kategori,
-								  jurusan_id,
-								  tahun_masuk,
-								  gender
-								FROM
-								  kategori_keuangan
-								WHERE (
-								    jurusan_id = '$jurusan_id'
-								    OR ISNULL(jurusan_id)
-								  )
-								  AND (
-								    (
-								      tahun_masuk = '$tahun_masuk'
-								      OR ISNULL(tahun_masuk)
-								    )
-								    AND (
-								      gender != '$gender'
-								      OR (ISNULL(gender)
-								        AND ISEMPTY(gender))
-								    )
-									AND
-								    (ISNULL(semester_id) OR semester_id='0' OR semester_id='$semester' OR semester_id='$before_semester')
-								  )
-								And sekolah_id = '$sekolah_id'");
-		$data                       = $sql->result_array();
-		$oneDimensionalArray        = array_map('current', $data);
+		$sql = $this->db->query("
+			SELECT 
+			    biaya,
+			    kategori_keuangan.id,
+			    nama_kategori,
+			    jurusan_id,
+			    tahun_masuk,
+			    gender
+			FROM
+			    kategori_keuangan
+			WHERE
+			    (jurusan_id = '$jurusan_id' OR ISNULL(jurusan_id))
+			    AND ((tahun_masuk = '$tahun_masuk' OR ISNULL(tahun_masuk))
+			    AND (gender != '$gender' OR (ISNULL(gender) AND ISEMPTY(gender)))
+			    AND (ISNULL(semester_id) OR semester_id = '0' OR semester_id = '$semester' OR semester_id = '$before_semester'))
+			    AND sekolah_id = '$sekolah_id'
+			    AND id not in('31','32','293')
+			    AND nama_kategori != 'SPP'");
+
+		$sqlSppNonSPAN = $this->db->query("
+			SELECT 
+			    biaya,
+			    kategori_keuangan.id,
+			    nama_kategori,
+			    jurusan_id,
+			    tahun_masuk,
+			    gender
+			FROM
+			    kategori_keuangan
+			WHERE
+			    (jurusan_id = '$jurusan_id' OR ISNULL(jurusan_id))
+			    AND ((tahun_masuk = '$tahun_masuk' OR ISNULL(tahun_masuk))
+			    AND (gender != '$gender' OR (ISNULL(gender) AND ISEMPTY(gender)))
+			    AND (ISNULL(semester_id) OR semester_id = '0' OR semester_id = '$semester' OR semester_id = '$before_semester'))
+			    AND sekolah_id = '$sekolah_id'
+			    AND nama_kategori = 'SPP'");
+
+		$data = $sql->result_array();
+		
+		$oneDimensionalArray = array_map('current', $data);
 		$data['kategoriKeuanganId'] = array_map('next', $data);
-		$data['studentFee']         = array_sum($oneDimensionalArray);
+		
+		array_push($data, $sqlSppNonSPAN->row_array());
+		$data['lastKategoriKeuanganId'] = array($sqlSppNonSPAN->row_array()['id']);
+
+		$data['studentFee'] = array_sum($oneDimensionalArray)+($sqlSppNonSPAN->row()->biaya * 12);
+
 		return $data;
 	}
 

@@ -12,7 +12,7 @@ class Piutang extends CI_Controller {
 		$this->load->model('Crud_m','crud');
 	}
 
-
+/*
 	public function getStudentFee($tahunMasuk, $tingkatKelas, $sekolahId)
 	{
 		$data = array();
@@ -46,7 +46,7 @@ class Piutang extends CI_Controller {
 
 		return $data;
 	}
-
+*/
 
 	public function getStudentPayment($kelas_sekolah_id, $kategoriKeuanganId, $siswaId, $groupBy = null)
 	{
@@ -66,7 +66,8 @@ class Piutang extends CI_Controller {
 					and payment.flag='show'
 					and payment.kategori_keuangan_id in('".$kategoriKeuanganId."')
 					and siswa.id = '".$siswaId."'
-					group by payment.kategori_keuangan_id";
+					group by payment.kategori_keuangan_id
+					order by kategori_keuangan_id asc";
 			$query = $this->db->query($sql)->result();
 		} else {
 			$sql = "SELECT 
@@ -85,7 +86,7 @@ class Piutang extends CI_Controller {
 		}
 		
 
-		
+
 		return $query;
 	}
 
@@ -136,7 +137,7 @@ class Piutang extends CI_Controller {
 			'namaSekolah'    => $namaSekolah,
 			'sekolahId'      => $sekolahId);
 		// $this->crud->insert($data, 'piutangSekolah');
-		
+
 		return $tmp;
 	}
 
@@ -151,6 +152,9 @@ class Piutang extends CI_Controller {
 		
 		$getPaymentCategory = $this->get_payment_category($siswaId, $sekolahId);
 		$getStudentPayment  = $this->getStudentPayment($siswa->kelas_sekolah_id, $getPaymentCategory['kategoriKeuanganId'], $siswaId, '1');
+		$tmp  = $this->getStudentPayment($siswa->kelas_sekolah_id, $getPaymentCategory['lastKategoriKeuanganId'], $siswaId, '1');
+		array_push($getStudentPayment, $tmp[0]);
+
 		$getStudentPayment2  = $this->getStudentPayment($siswa->kelas_sekolah_id, $getPaymentCategory['kategoriKeuanganId'], $siswaId);
 		
 		$data = array(
@@ -172,20 +176,40 @@ class Piutang extends CI_Controller {
 		// $piutangSiswaId = $this->db->insert_id();
 
 		unset($data['listFee']['kategoriKeuanganId']);
+		unset($data['listFee']['lastKategoriKeuanganId']);
 		unset($data['listFee']['studentFee']);
 
 		$x = 0;
 		foreach ($data['listFee'] as $key) {
-			$dataDetailPiutangSiswa = array(
-					'kategoriKeuanganId' => $key['id'],
-					'namaKategori'       => $key['nama_kategori'],
-					'jurusanId'          => $key['jurusan_id'],
-					'tahunMasuk'         => $key['tahun_masuk'],
-					'gender'             => $key['gender'],
-					'biaya'              => $key['biaya'],
-					'totalPayment'       => $getStudentPayment[$x]->totalPayment,
-					'piutangSiswaId'     => $piutangSiswaId,
-					'dateCreated'        => $currentTime);
+
+			switch ($key['namaKategori']) {
+				case 'SPP':
+					$dataDetailPiutangSiswa = array(
+						'kategoriKeuanganId' => $key['id'],
+						'namaKategori'       => $key['nama_kategori'],
+						'jurusanId'          => $key['jurusan_id'],
+						'tahunMasuk'         => $key['tahun_masuk'],
+						'gender'             => $key['gender'],
+						'biaya'              => $key['biaya'],
+						'totalPayment'       => $getStudentPayment[$x]->totalPayment * 12,
+						'piutangSiswaId'     => $piutangSiswaId,
+						'dateCreated'        => $currentTime);
+					break;
+				
+				default:
+					$dataDetailPiutangSiswa = array(
+						'kategoriKeuanganId' => $key['id'],
+						'namaKategori'       => $key['nama_kategori'],
+						'jurusanId'          => $key['jurusan_id'],
+						'tahunMasuk'         => $key['tahun_masuk'],
+						'gender'             => $key['gender'],
+						'biaya'              => $key['biaya'],
+						'totalPayment'       => $getStudentPayment[$x]->totalPayment,
+						'piutangSiswaId'     => $piutangSiswaId,
+						'dateCreated'        => $currentTime);
+					break;
+			}
+			
 			if ($key['id']) {
 				// $this->crud->insert($dataDetailPiutangSiswa, 'detailPiutangSiswa');
 			}
@@ -312,12 +336,12 @@ class Piutang extends CI_Controller {
 		$condition = "piutangSiswaId = '".$idpiutangSiswa."' and (biaya > totalPayment or totalPayment is null)";
 		$data      = $this->crud->get('detailPiutangSiswa', $condition)->result_array();
 		if($data){
-            $tmp .=    "<option value=''>Pilih Pembayaran</option>";
+            $tmp = "<option value=''>Pilih Pembayaran</option>";
             foreach($data as $row) {
                 $tmp .= "<option value='".$row['iddetailPiutangSiswa']."'>".$row['namaKategori']."(Rp.".number_format($row['biaya']-$row['totalPayment'], 0 , '' , '.' ).")</option>";
             }
         } else {
-            $tmp .=    "<option value=''>Pilih Pembayaran</option>";
+            $tmp = "<option value=''>Pilih Pembayaran</option>";
         }
         die($tmp);
 	}
@@ -342,5 +366,58 @@ class Piutang extends CI_Controller {
 		$this->session->set_flashdata($data);
 		redirect(base_url('piutang/getListPiutang/'.$sekolahId));
 	}
+
+
+    public function revisiPiutang($sekolahId)
+    {
+        $piutangSekolah = $this->crud->get('piutangSekolah', array('sekolahId' => $sekolahId))->result_array();
+
+        foreach ($piutangSekolah as $pSekolah){
+            $dataPiutangSekolah = array();
+            $piutangRombel = $this->crud->get('piutangRombel', array('sekolahId' => $sekolahId))->result_array();
+
+            foreach ($piutangRombel as $pRombel){
+                $piutangSiswa = $this->crud->get('piutangSiswa', array('rombelId' => $pRombel['rombelId']))->result_array();
+                $dataPiutangRombel = array();
+
+                foreach ($piutangSiswa as $pSiswa){
+                    $detailPiutang = $this->db->select('totalPayment')->from('detailPiutangSiswa')->where('piutangSiswaId', $pSiswa['idpiutangSiswa'])->get()->result_array();
+                    $revisiPiutangSiswa = array(
+                        'piutangSiswa' => $pSiswa['studentFee']-array_sum(array_map('current', $detailPiutang)),
+                        'totalPayment' => array_sum(array_map('current', $detailPiutang)),
+                        'idpiutangSiswa' => $pSiswa['idpiutangSiswa'],
+                        'namaSiswa' => $pSiswa['namaSiswa']
+                    );
+
+                    $this->crud->update(array('piutangSiswa' => $revisiPiutangSiswa['piutangSiswa']), 'piutangSiswa', array('idpiutangSiswa' => $pSiswa['idpiutangSiswa']));
+//                    print_r($revisiPiutangSiswa);
+                    array_push($dataPiutangRombel, $revisiPiutangSiswa);
+                }
+
+                $revisiPiutangRombel = array(
+                    'piutangRombel' => array_sum(array_map('current', $dataPiutangRombel)),
+                    'rombelId' => $pRombel['rombelId'],
+                    'namaKelas' => $pRombel['namaKelas'],
+                    'percentage' => $pRombel['percentage'],
+                    'studentFee' => $pRombel['studentFee']
+                );
+                $percentage = round(100 - ($revisiPiutangRombel['piutangRombel'] / ($revisiPiutangRombel['studentFee']/100)), 2);
+                $this->crud->update(array('piutangRombel' => $revisiPiutangRombel['piutangRombel'], 'percentage' => $percentage), 'piutangRombel', array('rombelId' => $pRombel['rombelId']));
+//                print_r($revisiPiutangRombel);
+                array_push($dataPiutangSekolah, $revisiPiutangRombel);
+            }
+
+            $revisiPiutangSekolah = array(
+                'namaSekolah' => $pSekolah['namaSekolah'],
+                'percentage' => $pSekolah['percentage'],
+                'studentFee' => $pSekolah['studentFee'],
+                'piutangSekolah' => array_sum(array_map('current', $dataPiutangSekolah)),
+            );
+            $percentage = round(100 - ($revisiPiutangSekolah['piutangSekolah'] / ($revisiPiutangSekolah['studentFee']/100)), 2);
+            $this->crud->update(array('piutangSekolah' => $revisiPiutangSekolah['piutangSekolah'], 'percentage' => $percentage), 'piutangSekolah', array('sekolahId' => $pSekolah['sekolahId']));
+//            print_r($revisiPiutangSekolah);
+        }
+
+    }
 
 }
